@@ -1,0 +1,197 @@
+.app {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.app__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 1rem 2rem;
+  margin-bottom: 1rem;
+}
+
+.app__header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.app__alert {
+  background: var(--alert-bg);
+  border: 1px solid var(--alert-border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+}
+
+button {
+  font-size: 1rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* --- start screen --- */
+.start-screen {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 480px;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.start-screen select,
+.summary__save input {
+  font-size: 1rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: inherit;
+}
+
+.start-screen__rules {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* --- status --- */
+.draft-status {
+  display: flex;
+  gap: 1rem;
+  font-weight: 600;
+}
+
+.draft-status__direction {
+  color: var(--accent);
+}
+
+/* --- draft layout --- */
+.draft {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .draft {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pack,
+.picks__list,
+.summary__picks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.pack {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.pack__card {
+  width: 100%;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: none;
+  transition: transform 0.1s, border-color 0.1s;
+}
+
+.pack__card:hover:not(:disabled),
+.pack__card:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+}
+
+.pack__empty,
+.picks__empty {
+  color: var(--muted);
+}
+
+/* --- card image --- */
+.card-image {
+  position: relative;
+  margin: 0;
+}
+
+.card-image img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.card-image__name {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 8px;
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* --- picks --- */
+.picks {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.picks h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.picks__list {
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.picks__list .card-image__name {
+  font-size: 0.6rem;
+  padding: 0.1rem 0.2rem;
+}
+
+/* --- summary --- */
+.summary__save {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.summary__saved {
+  color: var(--exact);
+  font-weight: 600;
+}
+
+.summary__picks {
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+}
