@@ -195,3 +195,86 @@ button:disabled {
 .summary__picks {
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
 }
+
+/* --- main column: pack or table, then the log --- */
+.draft__main {
+  display: grid;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.draft-status__turn {
+  font-weight: 600;
+}
+
+/* --- Winston --- */
+.winston {
+  display: grid;
+  gap: 1rem;
+}
+
+.winston__piles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 120px));
+  gap: 1rem;
+}
+
+.winston__pile {
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  color: var(--muted);
+}
+
+.winston__pile[aria-current='true'] {
+  border-color: var(--accent);
+  color: inherit;
+  font-weight: 600;
+}
+
+.winston__back {
+  width: 100%;
+  border-radius: 6px;
+}
+
+.winston__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.winston__actions button + button {
+  background: transparent;
+  color: var(--accent);
+}
+
+/* --- log --- */
+.draft-log {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.draft-log h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.draft-log ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  max-height: 14rem;
+  overflow-y: auto;
+  color: var(--muted);
+}
+
+.draft-log li:first-child {
+  color: inherit;
+}

@@ -13,4 +13,9 @@ describe('Picks', () => {
     render(<Picks picks={[]} total={45} />);
     expect(screen.getByText(/no picks yet/i)).toBeInTheDocument();
   });
+
+  it('shows only the count when the format has no fixed total', () => {
+    render(<Picks picks={[{ name: 'Sol Ring', imageUrl: null }]} />);
+    expect(screen.getByRole('heading', { name: 'Your picks (1)' })).toBeInTheDocument();
+  });
 });

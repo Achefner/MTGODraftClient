@@ -26,7 +26,7 @@ async function request(url, options = {}) {
   return response.json();
 }
 
-/** Starts a draft: `{ source: 'random' }` or `{ source: 'cube', collectionId }`. */
+/** Starts a draft: `{ source: 'random', format }` or `{ source: 'cube', collectionId, format }`. */
 export function startDraft(source, baseUrl = API_BASE_URL) {
   return request(`${baseUrl}/drafts`, { method: 'POST', body: JSON.stringify(source) });
 }
@@ -37,6 +37,16 @@ export function getDraft(draftId, baseUrl = API_BASE_URL) {
 
 export function pickCard(draftId, cardName, baseUrl = API_BASE_URL) {
   return request(`${baseUrl}/drafts/${encodeURIComponent(draftId)}/picks`, { method: 'POST', body: JSON.stringify({ cardName }) });
+}
+
+/** Plays an action: `{ type: 'PICK', cardName }`, `{ type: 'TAKE_PILE' }` or `{ type: 'PASS_PILE' }`. */
+export function act(draftId, action, baseUrl = API_BASE_URL) {
+  return request(`${baseUrl}/drafts/${encodeURIComponent(draftId)}/actions`, { method: 'POST', body: JSON.stringify(action) });
+}
+
+/** The draft formats: name, displayName, seats, cardsNeeded, description. */
+export function fetchFormats(baseUrl = API_BASE_URL) {
+  return request(`${baseUrl}/drafts/formats`);
 }
 
 /** Cube collections a draft can be started from. */

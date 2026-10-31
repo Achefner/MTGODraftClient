@@ -32,4 +32,9 @@ describe('Pack', () => {
     render(<Pack cards={[]} onPick={jest.fn()} />);
     expect(screen.getByText(/no cards left/i)).toBeInTheDocument();
   });
+
+  it('can be labelled as the Rochester table', () => {
+    render(<Pack cards={[{ name: 'Sol Ring', imageUrl: null }]} onPick={jest.fn()} label="Table" />);
+    expect(screen.getByRole('list', { name: 'Table' })).toBeInTheDocument();
+  });
 });

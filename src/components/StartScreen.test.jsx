@@ -1,41 +1,69 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import StartScreen from './StartScreen';
+import { DEFAULT_FORMATS } from '../domain/formats';
 
-const sources = [{ id: 'c1', name: 'Power LSV Cube', cardCount: 540 }, { id: 'c2', name: 'Tiny Cube', cardCount: 40 }];
+const sources = [{ id: 'c1', name: 'Power LSV Cube', cardCount: 540 }, { id: 'c2', name: 'Tiny Cube', cardCount: 100 }];
+const renderStart = (props = {}) => {
+  const onStart = jest.fn();
+  render(<StartScreen formats={DEFAULT_FORMATS} sources={sources} onStart={onStart} {...props} />);
+  return onStart;
+};
+const start = () => userEvent.click(screen.getByRole('button', { name: /start draft/i }));
 
 describe('StartScreen', () => {
-  it('starts a random draft by default', async () => {
-    const onStart = jest.fn();
-    render(<StartScreen sources={sources} onStart={onStart} />);
-    await userEvent.click(screen.getByRole('button', { name: /start draft/i }));
-    expect(onStart).toHaveBeenCalledWith({ source: 'random' });
+  it('starts a random Classic draft by default', async () => {
+    const onStart = renderStart();
+    await start();
+    expect(onStart).toHaveBeenCalledWith({ source: 'random', format: 'CLASSIC' });
   });
 
-  it('lists the cubes with their size and starts a cube draft when one is chosen', async () => {
-    const onStart = jest.fn();
-    render(<StartScreen sources={sources} onStart={onStart} />);
-    const select = screen.getByRole('combobox', { name: /card pool/i });
-    expect(screen.getByRole('option', { name: /power lsv cube \(540 cards\)/i })).toBeInTheDocument();
-    await userEvent.selectOptions(select, 'c1');
-    await userEvent.click(screen.getByRole('button', { name: /start draft/i }));
-    expect(onStart).toHaveBeenCalledWith({ source: 'cube', collectionId: 'c1' });
+  it('offers every format and describes the chosen one', async () => {
+    renderStart();
+    const select = screen.getByRole('combobox', { name: /format/i });
+    expect(screen.getAllByRole('option', { name: /classic|rochester|winston/i })).toHaveLength(3);
+    expect(screen.getByText(/left, then right, then left/i)).toBeInTheDocument();
+
+    await userEvent.selectOptions(select, 'WINSTON');
+
+    expect(screen.getByText(/3 face-down piles/i)).toBeInTheDocument();
   });
 
-  it('disables cubes that are too small for a draft', () => {
-    render(<StartScreen sources={sources} onStart={jest.fn()} />);
-    expect(screen.getByRole('option', { name: /tiny cube/i })).toBeDisabled();
+  it('starts a cube draft in the chosen format', async () => {
+    const onStart = renderStart();
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /format/i }), 'ROCHESTER');
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /card pool/i }), 'c1');
+    await start();
+    expect(onStart).toHaveBeenCalledWith({ source: 'cube', collectionId: 'c1', format: 'ROCHESTER' });
+  });
+
+  it('disables cubes too small for the chosen format', async () => {
+    renderStart();
+    expect(screen.getByRole('option', { name: /tiny cube \(100 cards, needs 360\)/i })).toBeDisabled();
+
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /format/i }), 'WINSTON');
+
+    expect(screen.getByRole('option', { name: /tiny cube \(100 cards\)/i })).toBeEnabled();
+  });
+
+  it('falls back to random cards when the chosen cube is too small for a new format', async () => {
+    const onStart = renderStart();
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /format/i }), 'WINSTON');
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /card pool/i }), 'c2');
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /format/i }), 'CLASSIC');
+    await start();
+    expect(onStart).toHaveBeenCalledWith({ source: 'random', format: 'CLASSIC' });
   });
 
   it('works with no cubes at all', async () => {
-    const onStart = jest.fn();
-    render(<StartScreen sources={[]} onStart={onStart} />);
-    await userEvent.click(screen.getByRole('button', { name: /start draft/i }));
-    expect(onStart).toHaveBeenCalledWith({ source: 'random' });
+    const onStart = renderStart({ sources: [] });
+    await start();
+    expect(onStart).toHaveBeenCalledWith({ source: 'random', format: 'CLASSIC' });
   });
 
-  it('disables the button while starting', () => {
-    render(<StartScreen sources={[]} onStart={jest.fn()} disabled />);
+  it('disables the controls while starting', () => {
+    renderStart({ disabled: true });
     expect(screen.getByRole('button', { name: /start draft/i })).toBeDisabled();
+    expect(screen.getByRole('combobox', { name: /format/i })).toBeDisabled();
   });
 });

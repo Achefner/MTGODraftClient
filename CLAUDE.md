@@ -10,8 +10,15 @@ npm test        # tests live next to the code as *.test.js(x); App.test.jsx mock
 ```
 
 - All draft rules live in the service; the client only renders the draft view it receives and
-  never computes picks or passing. `ROUNDS` / `PACK_SIZE` in `DraftStatus.jsx` and
-  `CARDS_NEEDED` in `StartScreen.jsx` are display constants mirroring the service.
+  never computes picks or passing. Display mirrors of the service: `ROUNDS` / `PACK_SIZE` /
+  `BOOSTERS_PER_ROUND` in `DraftStatus.jsx`, `DEFAULT_FORMATS` in `src/domain/formats.js`
+  (used until `GET /drafts/formats` answers), and `canPassPile` in `src/domain/winston.js`
+  (only disables the Pass button; the service still decides).
+- Formats: CLASSIC (pack in front of you), ROCHESTER (`pack` is the face-up table, `Pack` with
+  label "Table"), WINSTON (`WinstonTable`: piles, the pile you look at, take or pass). Every
+  action goes through `act(draftId, {type, cardName})` → `POST /drafts/{id}/actions`.
+- `DraftLog` renders the view's `log` (events already filtered for your seat by the service)
+  through `describeEvent`; it is shown for Rochester and Winston, where other seats' moves matter.
 - `ApiError` carries the service's `{"error": …}` message so the UI can show it verbatim.
 - Card pictures come straight from the draft view (`imageUrl`, Scryfall large images);
   `CardImage` falls back to `public/card-back.svg` with the name overlaid.

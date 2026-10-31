@@ -1,4 +1,4 @@
-import { startDraft, getDraft, pickCard, fetchSources, saveDeck, ApiError } from './draftApi';
+import { startDraft, getDraft, pickCard, act, fetchSources, fetchFormats, saveDeck, ApiError } from './draftApi';
 
 const BASE = 'http://api.test';
 const jsonResponse = (body, status = 200) => ({ ok: status >= 200 && status < 300, status, json: () => Promise.resolve(body) });
@@ -47,6 +47,18 @@ describe('getDraft / pickCard / fetchSources / saveDeck', () => {
     global.fetch.mockResolvedValue(jsonResponse(draft));
     await pickCard('d1', 'Black Lotus', BASE);
     expect(global.fetch).toHaveBeenCalledWith(`${BASE}/drafts/d1/picks`, expect.objectContaining({ method: 'POST', body: JSON.stringify({ cardName: 'Black Lotus' }) }));
+  });
+
+  it('POSTs an action', async () => {
+    global.fetch.mockResolvedValue(jsonResponse(draft));
+    await act('d1', { type: 'TAKE_PILE' }, BASE);
+    expect(global.fetch).toHaveBeenCalledWith(`${BASE}/drafts/d1/actions`, expect.objectContaining({ method: 'POST', body: JSON.stringify({ type: 'TAKE_PILE' }) }));
+  });
+
+  it('GETs the formats', async () => {
+    global.fetch.mockResolvedValue(jsonResponse([{ name: 'CLASSIC' }]));
+    await expect(fetchFormats(BASE)).resolves.toEqual([{ name: 'CLASSIC' }]);
+    expect(global.fetch).toHaveBeenCalledWith(`${BASE}/drafts/formats`, expect.anything());
   });
 
   it('GETs the sources', async () => {

@@ -1,10 +1,10 @@
 import CardImage from './CardImage';
 
-/** The player's picks so far, most recent first. */
+/** The player's picks so far, most recent first. {@code total} is left out when the format has none. */
 export default function Picks({ picks, total }) {
   return (
     <section className="picks">
-      <h2 id="picks-heading">Your picks ({picks.length}/{total})</h2>
+      <h2 id="picks-heading">Your picks ({total === undefined ? picks.length : `${picks.length}/${total}`})</h2>
       {picks.length === 0 ? (
         <p className="picks__empty">No picks yet.</p>
       ) : (
