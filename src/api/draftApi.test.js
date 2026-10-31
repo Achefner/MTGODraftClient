@@ -1,75 +1,79 @@
-import { startDraft, getDraft, pickCard, act, fetchSources, fetchFormats, saveDeck, ApiError } from './draftApi';
+import {
+  act, ApiError, fetchFormats, fetchSources, getDraft, joinTable, openTable, previewTable, saveDeck, startTable, streamUrl, TOKEN_HEADER,
+} from './draftApi';
 
 const BASE = 'http://api.test';
 const jsonResponse = (body, status = 200) => ({ ok: status >= 200 && status < 300, status, json: () => Promise.resolve(body) });
-const draft = { id: 'd1', round: 1, pickNumber: 1, pack: [], picks: [] };
+const ticket = { draftId: 'd1', seat: 0, token: 't1', view: { id: 'd1' } };
 
 beforeEach(() => { global.fetch = jest.fn(); });
 afterEach(() => { delete global.fetch; });
 
-describe('startDraft', () => {
-  it('POSTs a random draft', async () => {
-    global.fetch.mockResolvedValue(jsonResponse(draft, 201));
-    await expect(startDraft({ source: 'random' }, BASE)).resolves.toEqual(draft);
-    expect(global.fetch).toHaveBeenCalledWith(`${BASE}/drafts`, expect.objectContaining({
-      method: 'POST', body: JSON.stringify({ source: 'random' }),
-    }));
+const lastCall = () => global.fetch.mock.calls[global.fetch.mock.calls.length - 1];
+
+describe('draftApi', () => {
+  it('opens a table', async () => {
+    global.fetch.mockResolvedValue(jsonResponse(ticket, 201));
+    const request = { source: 'random', format: 'WINSTON', playerName: 'Amir', timed: true, startNow: false };
+    await expect(openTable(request, BASE)).resolves.toEqual(ticket);
+    expect(lastCall()[0]).toBe(`${BASE}/drafts`);
+    expect(lastCall()[1]).toMatchObject({ method: 'POST', body: JSON.stringify(request) });
   });
 
-  it('POSTs a cube draft with the collection id', async () => {
-    global.fetch.mockResolvedValue(jsonResponse(draft, 201));
-    await startDraft({ source: 'cube', collectionId: 'c1' }, BASE);
-    expect(global.fetch.mock.calls[0][1].body).toBe(JSON.stringify({ source: 'cube', collectionId: 'c1' }));
+  it('previews and joins a table', async () => {
+    global.fetch.mockResolvedValue(jsonResponse({ id: 'd1' }));
+    await previewTable('d1', BASE);
+    expect(lastCall()[0]).toBe(`${BASE}/drafts/d1/table`);
+
+    global.fetch.mockResolvedValue(jsonResponse(ticket, 201));
+    await joinTable('d1', 'Guest', BASE);
+    expect(lastCall()[0]).toBe(`${BASE}/drafts/d1/seats`);
+    expect(lastCall()[1]).toMatchObject({ method: 'POST', body: JSON.stringify({ playerName: 'Guest' }) });
   });
 
-  it('throws an ApiError carrying the server message', async () => {
-    global.fetch.mockResolvedValue(jsonResponse({ error: 'A draft needs 360 cards but the cube has 40' }, 400));
-    const error = await startDraft({ source: 'cube', collectionId: 'c1' }, BASE).catch((e) => e);
+  it('sends the seat token with every seat call', async () => {
+    global.fetch.mockResolvedValue(jsonResponse({ id: 'd1' }));
+
+    await getDraft('d1', 't1', BASE);
+    expect(lastCall()[0]).toBe(`${BASE}/drafts/d1`);
+    expect(lastCall()[1].headers[TOKEN_HEADER]).toBe('t1');
+
+    await startTable('d1', 't1', BASE);
+    expect(lastCall()[0]).toBe(`${BASE}/drafts/d1/start`);
+    expect(lastCall()[1]).toMatchObject({ method: 'POST' });
+    expect(lastCall()[1].headers[TOKEN_HEADER]).toBe('t1');
+
+    await act('d1', 't1', { type: 'PICK', cardName: 'Bolt', expectedMoves: 3 }, BASE);
+    expect(lastCall()[0]).toBe(`${BASE}/drafts/d1/actions`);
+    expect(lastCall()[1].body).toBe(JSON.stringify({ type: 'PICK', cardName: 'Bolt', expectedMoves: 3 }));
+    expect(lastCall()[1].headers[TOKEN_HEADER]).toBe('t1');
+
+    await saveDeck('d1', 't1', 'My deck', BASE);
+    expect(lastCall()[0]).toBe(`${BASE}/drafts/d1/deck`);
+    expect(lastCall()[1].body).toBe(JSON.stringify({ name: 'My deck' }));
+    expect(lastCall()[1].headers[TOKEN_HEADER]).toBe('t1');
+  });
+
+  it('GETs the formats and the cube sources', async () => {
+    global.fetch.mockResolvedValue(jsonResponse([]));
+    await fetchFormats(BASE);
+    expect(lastCall()[0]).toBe(`${BASE}/drafts/formats`);
+    await fetchSources(BASE);
+    expect(lastCall()[0]).toBe(`${BASE}/drafts/sources`);
+  });
+
+  it('builds the stream URL with the token', () => {
+    expect(streamUrl('d 1', 't+1', BASE)).toBe(`${BASE}/drafts/d%201/stream?token=t%2B1`);
+  });
+
+  it('throws an ApiError carrying the server message, or the status', async () => {
+    global.fetch.mockResolvedValue(jsonResponse({ error: 'Your view is out of date' }, 409));
+    const error = await getDraft('d1', 't1', BASE).catch((e) => e);
     expect(error).toBeInstanceOf(ApiError);
-    expect(error.status).toBe(400);
-    expect(error.message).toBe('A draft needs 360 cards but the cube has 40');
-  });
+    expect(error.status).toBe(409);
+    expect(error.message).toBe('Your view is out of date');
 
-  it('falls back to a status message when the body is not JSON', async () => {
     global.fetch.mockResolvedValue({ ok: false, status: 502, json: () => Promise.reject(new Error('no json')) });
-    await expect(startDraft({ source: 'random' }, BASE)).rejects.toThrow(/502/);
-  });
-});
-
-describe('getDraft / pickCard / fetchSources / saveDeck', () => {
-  it('GETs a draft', async () => {
-    global.fetch.mockResolvedValue(jsonResponse(draft));
-    await expect(getDraft('d1', BASE)).resolves.toEqual(draft);
-    expect(global.fetch).toHaveBeenCalledWith(`${BASE}/drafts/d1`, expect.objectContaining({ headers: expect.objectContaining({ Accept: 'application/json' }) }));
-  });
-
-  it('POSTs a pick', async () => {
-    global.fetch.mockResolvedValue(jsonResponse(draft));
-    await pickCard('d1', 'Black Lotus', BASE);
-    expect(global.fetch).toHaveBeenCalledWith(`${BASE}/drafts/d1/picks`, expect.objectContaining({ method: 'POST', body: JSON.stringify({ cardName: 'Black Lotus' }) }));
-  });
-
-  it('POSTs an action', async () => {
-    global.fetch.mockResolvedValue(jsonResponse(draft));
-    await act('d1', { type: 'TAKE_PILE' }, BASE);
-    expect(global.fetch).toHaveBeenCalledWith(`${BASE}/drafts/d1/actions`, expect.objectContaining({ method: 'POST', body: JSON.stringify({ type: 'TAKE_PILE' }) }));
-  });
-
-  it('GETs the formats', async () => {
-    global.fetch.mockResolvedValue(jsonResponse([{ name: 'CLASSIC' }]));
-    await expect(fetchFormats(BASE)).resolves.toEqual([{ name: 'CLASSIC' }]);
-    expect(global.fetch).toHaveBeenCalledWith(`${BASE}/drafts/formats`, expect.anything());
-  });
-
-  it('GETs the sources', async () => {
-    global.fetch.mockResolvedValue(jsonResponse([{ id: 'c1', name: 'Cube', cardCount: 540 }]));
-    await expect(fetchSources(BASE)).resolves.toHaveLength(1);
-    expect(global.fetch).toHaveBeenCalledWith(`${BASE}/drafts/sources`, expect.anything());
-  });
-
-  it('POSTs the deck name to save', async () => {
-    global.fetch.mockResolvedValue(jsonResponse({ collectionId: 'k1', name: 'My deck', cardCount: 45 }, 201));
-    await expect(saveDeck('d1', 'My deck', BASE)).resolves.toEqual({ collectionId: 'k1', name: 'My deck', cardCount: 45 });
-    expect(global.fetch).toHaveBeenCalledWith(`${BASE}/drafts/d1/deck`, expect.objectContaining({ method: 'POST', body: JSON.stringify({ name: 'My deck' }) }));
+    await expect(fetchSources(BASE)).rejects.toThrow(/502/);
   });
 });

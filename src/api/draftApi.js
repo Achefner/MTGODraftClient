@@ -1,5 +1,7 @@
 import { API_BASE_URL } from '../config';
 
+export const TOKEN_HEADER = 'X-Seat-Token';
+
 export class ApiError extends Error {
   constructor(status, message) {
     super(message);
@@ -8,16 +10,16 @@ export class ApiError extends Error {
   }
 }
 
-async function request(url, options = {}) {
-  const response = await fetch(url, {
-    ...options,
-    headers: { Accept: 'application/json', ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...(options.headers ?? {}) },
-  });
+async function request(url, { token, body, method = 'GET' } = {}) {
+  const headers = { Accept: 'application/json' };
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  if (token) headers[TOKEN_HEADER] = token;
+  const response = await fetch(url, { method, headers, ...(body !== undefined ? { body: JSON.stringify(body) } : {}) });
   if (!response.ok) {
     let message = `Request failed with status ${response.status}`;
     try {
-      const body = await response.json();
-      if (body && body.error) message = body.error;
+      const payload = await response.json();
+      if (payload && payload.error) message = payload.error;
     } catch {
       // keep the status message
     }
@@ -26,22 +28,41 @@ async function request(url, options = {}) {
   return response.json();
 }
 
-/** Starts a draft: `{ source: 'random', format }` or `{ source: 'cube', collectionId, format }`. */
-export function startDraft(source, baseUrl = API_BASE_URL) {
-  return request(`${baseUrl}/drafts`, { method: 'POST', body: JSON.stringify(source) });
+const draftUrl = (baseUrl, draftId) => `${baseUrl}/drafts/${encodeURIComponent(draftId)}`;
+
+/**
+ * Opens a table: `{ source: 'random' | 'cube', collectionId?, format, playerName, timed, startNow }`.
+ * Resolves to the seat ticket `{ draftId, seat, token, view }`.
+ */
+export function openTable(table, baseUrl = API_BASE_URL) {
+  return request(`${baseUrl}/drafts`, { method: 'POST', body: table });
 }
 
-export function getDraft(draftId, baseUrl = API_BASE_URL) {
-  return request(`${baseUrl}/drafts/${encodeURIComponent(draftId)}`);
+/** Public facts about a table, for the join page. */
+export function previewTable(draftId, baseUrl = API_BASE_URL) {
+  return request(`${draftUrl(baseUrl, draftId)}/table`);
 }
 
-export function pickCard(draftId, cardName, baseUrl = API_BASE_URL) {
-  return request(`${baseUrl}/drafts/${encodeURIComponent(draftId)}/picks`, { method: 'POST', body: JSON.stringify({ cardName }) });
+export function joinTable(draftId, playerName, baseUrl = API_BASE_URL) {
+  return request(`${draftUrl(baseUrl, draftId)}/seats`, { method: 'POST', body: { playerName } });
 }
 
-/** Plays an action: `{ type: 'PICK', cardName }`, `{ type: 'TAKE_PILE' }` or `{ type: 'PASS_PILE' }`. */
-export function act(draftId, action, baseUrl = API_BASE_URL) {
-  return request(`${baseUrl}/drafts/${encodeURIComponent(draftId)}/actions`, { method: 'POST', body: JSON.stringify(action) });
+export function startTable(draftId, token, baseUrl = API_BASE_URL) {
+  return request(`${draftUrl(baseUrl, draftId)}/start`, { method: 'POST', token });
+}
+
+export function getDraft(draftId, token, baseUrl = API_BASE_URL) {
+  return request(draftUrl(baseUrl, draftId), { token });
+}
+
+/** `{ type: 'PICK', cardName, expectedMoves }`, `{ type: 'TAKE_PILE', expectedMoves }` or `{ type: 'PASS_PILE', expectedMoves }`. */
+export function act(draftId, token, action, baseUrl = API_BASE_URL) {
+  return request(`${draftUrl(baseUrl, draftId)}/actions`, { method: 'POST', token, body: action });
+}
+
+/** Saves the seat's picks as a deck collection in the card database. */
+export function saveDeck(draftId, token, name, baseUrl = API_BASE_URL) {
+  return request(`${draftUrl(baseUrl, draftId)}/deck`, { method: 'POST', token, body: { name } });
 }
 
 /** The draft formats: name, displayName, seats, cardsNeeded, description. */
@@ -54,7 +75,7 @@ export function fetchSources(baseUrl = API_BASE_URL) {
   return request(`${baseUrl}/drafts/sources`);
 }
 
-/** Saves the picks so far as a deck collection in the card database. */
-export function saveDeck(draftId, name, baseUrl = API_BASE_URL) {
-  return request(`${baseUrl}/drafts/${encodeURIComponent(draftId)}/deck`, { method: 'POST', body: JSON.stringify({ name }) });
+/** EventSource cannot send headers, so the stream takes the token as a query parameter. */
+export function streamUrl(draftId, token, baseUrl = API_BASE_URL) {
+  return `${draftUrl(baseUrl, draftId)}/stream?token=${encodeURIComponent(token)}`;
 }

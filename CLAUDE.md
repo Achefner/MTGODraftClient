@@ -19,6 +19,16 @@ npm test        # tests live next to the code as *.test.js(x); App.test.jsx mock
   action goes through `act(draftId, {type, cardName})` → `POST /drafts/{id}/actions`.
 - `DraftLog` renders the view's `log` (events already filtered for your seat by the service)
   through `describeEvent`; it is shown for Rochester and Winston, where other seats' moves matter.
+- Seats: `openTable` / `joinTable` return `{draftId, seat, token, view}`; the session
+  `{draftId, token, seat}` goes to local storage (`domain/session.js`) and every seat call sends
+  the token (`X-Seat-Token`). On load a stored seat is checked with `getDraft`; 403/404 forget it.
+- Live view: `openStream` (EventSource on `/drafts/{id}/stream?token=`) while a seat is held.
+  Views from the stream and from replies go through `latestView` (highest `version` wins).
+  Actions send `expectedMoves: view.moves`; a 409 reloads the view and shows the message.
+- `PickClock` counts down from `timer.remainingMillis` and the view's `receivedAt` (set when the
+  view arrived), not from `deadline`, so a skewed browser clock does not matter.
+- Tests: `App.test.jsx` mocks `./api/draftApi` and `./api/draftStream` (push updates through the
+  captured `onUpdate`), and uses jsdom's localStorage and `window.history` for invite links.
 - `ApiError` carries the service's `{"error": …}` message so the UI can show it verbatim.
 - Card pictures come straight from the draft view (`imageUrl`, Scryfall large images);
   `CardImage` falls back to `public/card-back.svg` with the name overlaid.

@@ -52,6 +52,9 @@ button:disabled {
 }
 
 .start-screen select,
+.start-screen input[type='text'],
+.join__form input,
+.lobby__link input,
 .summary__save input {
   font-size: 1rem;
   padding: 0.5rem 0.7rem;
@@ -277,4 +280,146 @@ button:disabled {
 
 .draft-log li:first-child {
   color: inherit;
+}
+
+/* --- secondary buttons --- */
+.button--secondary {
+  background: transparent;
+  color: var(--accent);
+}
+
+/* --- start screen extras --- */
+.start-screen__check {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.start-screen__buttons,
+.lobby__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* --- join and lobby --- */
+.join,
+.lobby {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 560px;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.join h2,
+.lobby h2 {
+  margin: 0;
+}
+
+.join__form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.lobby__link {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.lobby__link input {
+  flex: 1;
+  min-width: 0;
+}
+
+.lobby__seats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.5rem;
+}
+
+.lobby__seat {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.lobby__seat--open {
+  color: var(--muted);
+  border-style: dashed;
+}
+
+.lobby__seat-number {
+  display: inline-block;
+  min-width: 1.4rem;
+  color: var(--muted);
+}
+
+.lobby__hint {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* --- pick clock --- */
+.pick-clock {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.pick-clock--urgent {
+  color: var(--alert-border);
+}
+
+/* --- connection banner --- */
+.connection {
+  margin: 0.75rem 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid var(--alert-border);
+  background: var(--alert-bg);
+}
+
+/* --- side column: seats and picks --- */
+.draft__side {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.seat-list {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.seat-list h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.seat-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.seat-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.seat-list__detail,
+.seat-list__seat--offline {
+  color: var(--muted);
 }

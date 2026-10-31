@@ -12,9 +12,12 @@ describe('formats', () => {
     expect(findFormat([], 'WINSTON').name).toBe('WINSTON');
   });
 
-  it('names seats: you, the Winston opponent, or a seat number', () => {
-    expect(seatName(0, { format: 'CLASSIC', seat: 0 })).toBe('You');
-    expect(seatName(1, { format: 'WINSTON', seat: 0 })).toBe('Opponent');
+  it('names seats: you, a player by name, the Winston opponent, or a seat number', () => {
+    const seats = [{ kind: 'HUMAN', name: 'Amir' }, { kind: 'HUMAN', name: 'Guest' }, { kind: 'BOT', name: null }, { kind: 'BOT', name: null }];
+    expect(seatName(0, { format: 'CLASSIC', seat: 0, seats })).toBe('You');
+    expect(seatName(1, { format: 'ROCHESTER', seat: 0, seats })).toBe('Guest');
+    expect(seatName(1, { format: 'WINSTON', seat: 0, seats: [seats[0], seats[2]] })).toBe('Opponent');
+    expect(seatName(3, { format: 'ROCHESTER', seat: 0, seats })).toBe('Seat 3');
     expect(seatName(3, { format: 'ROCHESTER', seat: 0 })).toBe('Seat 3');
   });
 

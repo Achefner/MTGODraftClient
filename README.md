@@ -1,11 +1,18 @@
 # MTGODraftClient
 
-Front end of a simulated draft: you sit at seat 0, every other seat is a bot playing at
-random. Three formats: Classic and Rochester (8 seats), Winston (2 seats). Talks to [MTGODraftService](../MTGODraftService)
+Front end of the draft service: draft against bots, or open a table and invite friends with
+a link; seats nobody takes are played by bots. Three formats: Classic and Rochester (8 seats),
+Winston (2 seats). Talks to [MTGODraftService](../MTGODraftService)
 on port 8082, which draws the cards from MTGODatabase.
 
 - **Start screen**: pick the format and the card pool, random cards or any CUBE collection
-  big enough for the format (360 cards for Classic and Rochester, 90 for Winston), then start.
+  big enough for the format (360 cards for Classic and Rochester, 90 for Winston), your name and
+  whether to use the pick timer. Then draft against bots, or open a table.
+- **Table**: the lobby shows the invite link (`/?join=<draftId>`) and who sits where; the host
+  starts. Opening the link shows the table and asks for a name to join.
+- **Coming back**: the seat is kept in the browser (local storage), so a reload or a dropped
+  connection brings you back to your seat. A banner shows while the live connection is down.
+- **Pick timer**: a countdown shows the time left; when it runs out the service picks for you.
 - **Classic**: the pack in front of you is shown as card pictures (card back with the name
   when there is no picture). Click a card to pick it; the status line shows pack, pick and
   pass direction.
@@ -13,7 +20,7 @@ on port 8082, which draws the cards from MTGODatabase.
   booster and who opened it, and whose turn it is; a log lists what the other seats took.
 - **Winston**: three face-down piles with their size. On your turn you see the pile you are
   looking at and take it or pass it; the log tells what the opponent did, without its cards.
-- Your picks are listed on the side.
+- Your picks are listed on the side, with the seats when other people play.
 - **End**: the summary shows your picks; save them as a DECK collection in the card
   database under a name, or start a new draft.
 
@@ -33,17 +40,25 @@ Override the backend URL with `VITE_API_BASE_URL=http://host:port npm run dev`.
 
 ```
 src/
-├── api/draftApi.js            # startDraft / getDraft / act / pickCard / fetchFormats / fetchSources / saveDeck, ApiError
+├── api/draftApi.js            # tables, seats, actions, deck (token in X-Seat-Token), streamUrl, ApiError
+├── api/draftStream.js         # EventSource wrapper: updates and connection status
+├── domain/session.js          # the seat kept in local storage, invite links
+├── domain/latestView.js       # keeps the newest view (stream and replies may cross)
 ├── domain/formats.js          # default format list, seat names, picks per format
 ├── domain/describeEvent.js    # one sentence per log event
 ├── domain/winston.js          # when the Pass button is enabled
-├── components/StartScreen     # format and card pool choice
+├── components/StartScreen     # format, card pool, name, timer; draft against bots or open a table
+├── components/JoinScreen      # the invite link's page
+├── components/Lobby           # invite link, seats, host's start button
 ├── components/DraftStatus     # status line for each format
+├── components/PickClock       # countdown of the seat's pick timer
+├── components/ConnectionStatus# banner while reconnecting
 ├── components/Pack            # clickable card grid (your pack, or the Rochester table)
 ├── components/WinstonTable    # piles, the pile you look at, take or pass
 ├── components/DraftLog        # what happened, most recent first
+├── components/SeatList        # who sits where, online or not, when other people play
 ├── components/Picks           # picks so far
 ├── components/DraftSummary    # end of draft, save deck, new draft
 ├── components/CardImage       # picture with card-back fallback
-└── App.jsx                    # start → drafting → finished
+└── App.jsx                    # join / start → lobby → drafting → finished
 ```

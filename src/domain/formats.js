@@ -23,9 +23,11 @@ export function findFormat(formats, name) {
     ?? DEFAULT_FORMATS[0];
 }
 
-/** "You" for the player's seat, "Opponent" in a two-player Winston draft, else "Seat n". */
+/** "You" for the player's seat, a player's name, "Opponent" for the Winston bot, else "Seat n". */
 export function seatName(seat, draft) {
   if (seat === draft.seat) return 'You';
+  const other = draft.seats?.[seat];
+  if (other?.kind === 'HUMAN' && other.name) return other.name;
   if (draft.format === 'WINSTON') return 'Opponent';
   return `Seat ${seat}`;
 }

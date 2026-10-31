@@ -9,13 +9,14 @@ const renderStart = (props = {}) => {
   render(<StartScreen formats={DEFAULT_FORMATS} sources={sources} onStart={onStart} {...props} />);
   return onStart;
 };
-const start = () => userEvent.click(screen.getByRole('button', { name: /start draft/i }));
+const start = () => userEvent.click(screen.getByRole('button', { name: /draft against bots/i }));
+const SOLO = { playerName: '', timed: true, startNow: true };
 
 describe('StartScreen', () => {
   it('starts a random Classic draft by default', async () => {
     const onStart = renderStart();
     await start();
-    expect(onStart).toHaveBeenCalledWith({ source: 'random', format: 'CLASSIC' });
+    expect(onStart).toHaveBeenCalledWith({ source: 'random', format: 'CLASSIC', ...SOLO });
   });
 
   it('offers every format and describes the chosen one', async () => {
@@ -34,7 +35,7 @@ describe('StartScreen', () => {
     await userEvent.selectOptions(screen.getByRole('combobox', { name: /format/i }), 'ROCHESTER');
     await userEvent.selectOptions(screen.getByRole('combobox', { name: /card pool/i }), 'c1');
     await start();
-    expect(onStart).toHaveBeenCalledWith({ source: 'cube', collectionId: 'c1', format: 'ROCHESTER' });
+    expect(onStart).toHaveBeenCalledWith({ source: 'cube', collectionId: 'c1', format: 'ROCHESTER', ...SOLO });
   });
 
   it('disables cubes too small for the chosen format', async () => {
@@ -52,18 +53,27 @@ describe('StartScreen', () => {
     await userEvent.selectOptions(screen.getByRole('combobox', { name: /card pool/i }), 'c2');
     await userEvent.selectOptions(screen.getByRole('combobox', { name: /format/i }), 'CLASSIC');
     await start();
-    expect(onStart).toHaveBeenCalledWith({ source: 'random', format: 'CLASSIC' });
+    expect(onStart).toHaveBeenCalledWith({ source: 'random', format: 'CLASSIC', ...SOLO });
   });
 
   it('works with no cubes at all', async () => {
     const onStart = renderStart({ sources: [] });
     await start();
-    expect(onStart).toHaveBeenCalledWith({ source: 'random', format: 'CLASSIC' });
+    expect(onStart).toHaveBeenCalledWith({ source: 'random', format: 'CLASSIC', ...SOLO });
+  });
+
+  it('opens a table for friends, with the name and without the timer', async () => {
+    const onStart = renderStart();
+    await userEvent.type(screen.getByRole('textbox', { name: /your name/i }), 'Amir');
+    await userEvent.click(screen.getByRole('checkbox', { name: /pick timer/i }));
+    await userEvent.click(screen.getByRole('button', { name: /open a table/i }));
+    expect(onStart).toHaveBeenCalledWith({ source: 'random', format: 'CLASSIC', playerName: 'Amir', timed: false, startNow: false });
   });
 
   it('disables the controls while starting', () => {
     renderStart({ disabled: true });
-    expect(screen.getByRole('button', { name: /start draft/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /draft against bots/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /open a table/i })).toBeDisabled();
     expect(screen.getByRole('combobox', { name: /format/i })).toBeDisabled();
   });
 });
