@@ -1,4 +1,4 @@
-import { act as rtlAct, fireEvent, render, screen, within } from '@testing-library/react';
+import { act as rtlAct, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 import {
@@ -6,7 +6,7 @@ import {
 } from './api/draftApi';
 import { openStream } from './api/draftStream';
 import { DEFAULT_FORMATS } from './domain/formats';
-import { loadSession, saveSession } from './domain/session';
+import { loadPickLayout, loadSession, saveSession, savePickLayout } from './domain/session';
 
 jest.mock('./api/draftApi', () => {
   const actual = jest.requireActual('./api/draftApi');
@@ -213,6 +213,33 @@ describe('App', () => {
 
     expect(await screen.findByText('Pick 2 of 15')).toBeInTheDocument();
     expect(screen.queryByTestId('card-zoom')).not.toBeInTheDocument();
+  });
+
+  it('drags a pick to another column, and finds it there after a reload', async () => {
+    const drafting = view({ version: 12, moves: 2, pickNumber: 3, pack: pack(13, 100), picks: [card(2), card(3)] });
+    openTable.mockResolvedValue(ticket(drafting));
+    await soloStart();
+    const column = (label) => screen.getByRole('region', { name: `Mana value ${label}` });
+
+    fireEvent.dragStart(within(await screen.findByRole('region', { name: 'Mana value 2' })).getByRole('img', { name: 'Card 2' }).closest('li'));
+    fireEvent.drop(column('5'));
+    expect(within(column('5')).getByRole('img', { name: 'Card 2' })).toBeInTheDocument();
+
+    cleanup();
+    getDraft.mockResolvedValue(drafting);
+    render(<App />);
+    expect(within(await screen.findByRole('region', { name: 'Mana value 5' })).getByRole('img', { name: 'Card 2' })).toBeInTheDocument();
+  });
+
+  it('forgets the layout when leaving the finished draft', async () => {
+    savePickLayout('d1', { 'mv-5': [0] });
+    openTable.mockResolvedValue(ticket(view({ version: 100, finished: true, status: 'FINISHED', yourTurn: false, pack: [], picks: [card(2)] })));
+    await soloStart();
+    expect(within(await screen.findByRole('region', { name: 'Mana value 5' })).getByRole('img', { name: 'Card 2' })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: /new draft/i }));
+
+    expect(loadPickLayout('d1')).toEqual({});
   });
 
   it('still offers every format and random cards when the lists cannot be loaded', async () => {

@@ -475,3 +475,23 @@ button:disabled {
 .pick-column .card-image__name {
   font-size: 0.7rem;
 }
+
+/* --- dragging picks between columns --- */
+.pick-column {
+  min-height: calc(var(--pick-card-width) * 1.4 + 2rem); /* an empty column still takes a drop */
+  border-radius: 8px;
+}
+
+.pick-column--over {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.pick-column li[draggable='true'] {
+  cursor: grab;
+}
+
+.pick-column__card--dragging {
+  opacity: 0.4;
+}

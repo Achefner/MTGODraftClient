@@ -1,4 +1,6 @@
-import { clearSession, joinIdFromUrl, joinLink, loadSession, saveSession } from './session';
+import {
+  clearPickLayout, clearSession, joinIdFromUrl, joinLink, loadPickLayout, loadSession, savePickLayout, saveSession,
+} from './session';
 
 const memoryStorage = () => {
   const data = {};
@@ -40,5 +42,30 @@ describe('session', () => {
     expect(joinIdFromUrl('?join=abc-1')).toBe('abc-1');
     expect(joinIdFromUrl('')).toBeNull();
     expect(joinLink('http://localhost:5174', 'abc 1')).toBe('http://localhost:5174/?join=abc%201');
+  });
+
+  it('keeps the pick layout of each draft', () => {
+    const storage = memoryStorage();
+    expect(loadPickLayout('d1', storage)).toEqual({});
+
+    savePickLayout('d1', { 'mv-2': [3, 0] }, storage);
+    savePickLayout('d2', { 'mv-0': [1] }, storage);
+    expect(loadPickLayout('d1', storage)).toEqual({ 'mv-2': [3, 0] });
+
+    clearPickLayout('d1', storage);
+    expect(loadPickLayout('d1', storage)).toEqual({});
+    expect(loadPickLayout('d2', storage)).toEqual({ 'mv-0': [1] });
+  });
+
+  it('reads a broken or missing pick layout as none', () => {
+    const storage = memoryStorage();
+    storage.setItem('mtgo-draft-layout:d1', 'not json');
+    expect(loadPickLayout('d1', storage)).toEqual({});
+    storage.setItem('mtgo-draft-layout:d1', '[1, 2]');
+    expect(loadPickLayout('d1', storage)).toEqual({});
+    const broken = { getItem: () => { throw new Error('no'); }, setItem: () => { throw new Error('no'); }, removeItem: () => { throw new Error('no'); } };
+    expect(loadPickLayout('d1', broken)).toEqual({});
+    expect(() => savePickLayout('d1', {}, broken)).not.toThrow();
+    expect(() => clearPickLayout('d1', broken)).not.toThrow();
   });
 });

@@ -25,6 +25,9 @@ on port 8082, which draws the cards from MTGODatabase.
   left when it does not fit; centred on the cursor's height but never past the window's edges.
 - **Your picks** sit at the bottom in mana value columns (0 to 6, 7+, and ? for unknown), each
   a stack of overlapping cards showing their title strip, in pick order; hover one to see it.
+  Drag a card to another column (dropped on a column it goes to the end, on a card above it);
+  the arrangement is kept in the browser for that draft, and new picks go to their mana value
+  column.
   The end summary shows the deck the same way. The seats are listed on the side when other
   people play.
 - **End**: the summary shows your picks; save them as a DECK collection in the card
@@ -55,7 +58,7 @@ src/
 ├── domain/winston.js          # when the Pass button is enabled
 ├── domain/sources.js          # card pool order: the featured cube (Power LSV) first
 ├── domain/zoomPosition.js     # where the zoomed card goes next to the cursor
-├── domain/pickColumns.js      # picks grouped by mana value
+├── domain/pickLayout.js       # picks arranged in columns, moves between columns
 ├── components/StartScreen     # format, card pool, name, timer; draft against bots or open a table
 ├── components/JoinScreen      # the invite link's page
 ├── components/Lobby           # invite link, seats, host's start button
@@ -66,7 +69,8 @@ src/
 ├── components/WinstonTable    # piles, the pile you look at, take or pass
 ├── components/DraftLog        # what happened, most recent first
 ├── components/SeatList        # who sits where, online or not, when other people play
-├── components/PickColumns     # picks in mana value columns (draft and summary)
+├── components/PickColumns     # picks in draggable columns
+├── components/DraftPicks      # PickColumns + the layout saved for the draft (draft and summary)
 ├── components/DraftSummary    # end of draft, save deck, new draft
 ├── components/CardImage       # picture with card-back fallback, reports hover to the zoom
 ├── components/CardZoom        # provider + overlay of the zoomed card

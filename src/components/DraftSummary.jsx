@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import PickColumns from './PickColumns';
+import DraftPicks from './DraftPicks';
 
 /** End of the draft: the picks, a form to save them as a deck, and a restart button. */
-export default function DraftSummary({ picks, onSave, onRestart }) {
+export default function DraftSummary({ draftId, picks, onSave, onRestart }) {
   const [name, setName] = useState('');
   const [saved, setSaved] = useState(null);
   const [error, setError] = useState(null);
@@ -35,7 +35,7 @@ export default function DraftSummary({ picks, onSave, onRestart }) {
       </form>
       {saved && <p className="summary__saved">Saved as "{saved.name}" ({saved.cardCount} cards) in the card database.</p>}
       {error && <p role="alert" className="app__alert">{error}</p>}
-      <PickColumns picks={picks} title="Your deck" />
+      <DraftPicks draftId={draftId} picks={picks} title="Your deck" />
     </section>
   );
 }

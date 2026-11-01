@@ -13,13 +13,13 @@ import JoinScreen from './components/JoinScreen';
 import Lobby from './components/Lobby';
 import Pack from './components/Pack';
 import PickClock from './components/PickClock';
-import PickColumns from './components/PickColumns';
+import DraftPicks from './components/DraftPicks';
 import SeatList from './components/SeatList';
 import StartScreen from './components/StartScreen';
 import WinstonTable from './components/WinstonTable';
 import { DEFAULT_FORMATS, totalPicks } from './domain/formats';
 import { latestView } from './domain/latestView';
-import { clearSession, joinIdFromUrl, joinLink, loadSession, saveSession } from './domain/session';
+import { clearPickLayout, clearSession, joinIdFromUrl, joinLink, loadSession, saveSession } from './domain/session';
 
 /** Loads a list once; keeps the fallback when it cannot be loaded. */
 function useList(load, fallback) {
@@ -164,6 +164,7 @@ export default function App() {
   const handleSave = (name) => saveDeck(session.draftId, session.token, name);
 
   const handleLeave = () => {
+    if (session) clearPickLayout(session.draftId);
     forgetSeat();
     setError(null);
   };
@@ -190,7 +191,7 @@ export default function App() {
           <Lobby view={view} link={joinLink(window.location.origin, view.id)} onStart={handleHostStart} onLeave={handleLeave} disabled={busy} />
         )}
 
-        {view?.status === 'FINISHED' && <DraftSummary picks={view.picks} onSave={handleSave} onRestart={handleLeave} />}
+        {view?.status === 'FINISHED' && <DraftSummary key={view.id} draftId={view.id} picks={view.picks} onSave={handleSave} onRestart={handleLeave} />}
 
         {playing && (
           <div className="draft">
@@ -207,7 +208,7 @@ export default function App() {
               <SeatList draft={view} />
             </aside>
             <div className="draft__picks">
-              <PickColumns picks={view.picks} total={totalPicks(view.format)} />
+              <DraftPicks key={view.id} draftId={view.id} picks={view.picks} total={totalPicks(view.format)} />
             </div>
           </div>
         )}

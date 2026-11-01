@@ -42,3 +42,31 @@ export function joinIdFromUrl(search) {
 export function joinLink(origin, draftId) {
   return `${origin}/?join=${encodeURIComponent(draftId)}`;
 }
+
+const layoutKey = (draftId) => `mtgo-draft-layout:${draftId}`;
+
+/** How the player arranged their picks in a draft: `{ columnKey: [pickIndex…] }`, or `{}`. */
+export function loadPickLayout(draftId, storage = defaultStorage()) {
+  try {
+    const layout = JSON.parse(storage?.getItem(layoutKey(draftId)) ?? 'null');
+    return layout && typeof layout === 'object' && !Array.isArray(layout) ? layout : {};
+  } catch {
+    return {};
+  }
+}
+
+export function savePickLayout(draftId, layout, storage = defaultStorage()) {
+  try {
+    storage?.setItem(layoutKey(draftId), JSON.stringify(layout));
+  } catch {
+    // the layout lasts as long as the page
+  }
+}
+
+export function clearPickLayout(draftId, storage = defaultStorage()) {
+  try {
+    storage?.removeItem(layoutKey(draftId));
+  } catch {
+    // nothing stored
+  }
+}
