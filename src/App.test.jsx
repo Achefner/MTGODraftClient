@@ -1,4 +1,4 @@
-import { act as rtlAct, render, screen, within } from '@testing-library/react';
+import { act as rtlAct, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 import {
@@ -43,6 +43,7 @@ beforeEach(() => {
 
 const soloStart = async (format) => {
   render(<App />);
+  await screen.findByRole('option', { name: /power lsv cube/i });
   if (format) await userEvent.selectOptions(await screen.findByRole('combobox', { name: /format/i }), format);
   await userEvent.click(await screen.findByRole('button', { name: /draft against bots/i }));
 };
@@ -52,7 +53,7 @@ describe('App', () => {
     openTable.mockResolvedValue(ticket());
     await soloStart();
 
-    expect(openTable).toHaveBeenCalledWith({ source: 'random', format: 'CLASSIC', playerName: '', timed: true, startNow: true });
+    expect(openTable).toHaveBeenCalledWith({ source: 'cube', collectionId: 'c1', format: 'CLASSIC', playerName: '', timed: true, startNow: true });
     expect(await screen.findByText('Pack 1 of 3')).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /^pick /i })).toHaveLength(15);
     expect(loadSession()).toEqual({ draftId: 'd1', token: 'tok', seat: 0 });
@@ -187,6 +188,16 @@ describe('App', () => {
     expect(loadSession()).toEqual({ draftId: 'd9', token: 'guest-tok', seat: 1 });
     expect(window.location.search).toBe('');
     expect(stream.url).toContain('token=guest-tok');
+  });
+
+  it('zooms a card picture on hover', async () => {
+    openTable.mockResolvedValue(ticket());
+    await soloStart();
+    const picture = within(await screen.findByRole('button', { name: 'Pick Card 2' })).getByRole('img');
+
+    fireEvent.mouseMove(picture, { clientX: 50, clientY: 300 });
+
+    expect(screen.getByTestId('card-zoom').querySelector('img')).toHaveAttribute('src', 'https://img/2.jpg');
   });
 
   it('still offers every format and random cards when the lists cannot be loaded', async () => {

@@ -5,7 +5,8 @@ a link; seats nobody takes are played by bots. Three formats: Classic and Roches
 Winston (2 seats). Talks to [MTGODraftService](../MTGODraftService)
 on port 8082, which draws the cards from MTGODatabase.
 
-- **Start screen**: pick the format and the card pool, random cards or any CUBE collection
+- **Start screen**: pick the format and the card pool: the Power LSV Cube first (selected by
+  default), then the other cubes by name, then random cards. Any CUBE collection
   big enough for the format (360 cards for Classic and Rochester, 90 for Winston), your name and
   whether to use the pick timer. Then draft against bots, or open a table.
 - **Table**: the lobby shows the invite link (`/?join=<draftId>`) and who sits where; the host
@@ -20,6 +21,8 @@ on port 8082, which draws the cards from MTGODatabase.
   booster and who opened it, and whose turn it is; a log lists what the other seats took.
 - **Winston**: three face-down piles with their size. On your turn you see the pile you are
   looking at and take it or pass it; the log tells what the opponent did, without its cards.
+- **Zoom**: hovering any card picture shows it big next to the cursor: on its right, or on its
+  left when it does not fit; centred on the cursor's height but never past the window's edges.
 - Your picks are listed on the side, with the seats when other people play.
 - **End**: the summary shows your picks; save them as a DECK collection in the card
   database under a name, or start a new draft.
@@ -47,6 +50,8 @@ src/
 ├── domain/formats.js          # default format list, seat names, picks per format
 ├── domain/describeEvent.js    # one sentence per log event
 ├── domain/winston.js          # when the Pass button is enabled
+├── domain/sources.js          # card pool order: the featured cube (Power LSV) first
+├── domain/zoomPosition.js     # where the zoomed card goes next to the cursor
 ├── components/StartScreen     # format, card pool, name, timer; draft against bots or open a table
 ├── components/JoinScreen      # the invite link's page
 ├── components/Lobby           # invite link, seats, host's start button
@@ -59,6 +64,7 @@ src/
 ├── components/SeatList        # who sits where, online or not, when other people play
 ├── components/Picks           # picks so far
 ├── components/DraftSummary    # end of draft, save deck, new draft
-├── components/CardImage       # picture with card-back fallback
+├── components/CardImage       # picture with card-back fallback, reports hover to the zoom
+├── components/CardZoom        # provider + overlay of the zoomed card
 └── App.jsx                    # join / start → lobby → drafting → finished
 ```

@@ -13,8 +13,22 @@ const start = () => userEvent.click(screen.getByRole('button', { name: /draft ag
 const SOLO = { playerName: '', timed: true, startNow: true };
 
 describe('StartScreen', () => {
-  it('starts a random Classic draft by default', async () => {
+  it('lists the Power LSV Cube first and selects it, random cards last', async () => {
+    const onStart = renderStart({ sources: [{ id: 'c2', name: 'Arena Cube', cardCount: 450 }, ...sources] });
+    const options = screen.getAllByRole('option').filter((o) => o.closest('select').id === 'source-select');
+    expect(options.map((o) => o.textContent)).toEqual([
+      'Power LSV Cube (540 cards)', 'Arena Cube (450 cards)', 'Tiny Cube (100 cards, needs 360)', 'Random cards from the database',
+    ]);
+    expect(screen.getByRole('combobox', { name: /card pool/i })).toHaveValue('c1');
+
+    await start();
+
+    expect(onStart).toHaveBeenCalledWith({ source: 'cube', collectionId: 'c1', format: 'CLASSIC', ...SOLO });
+  });
+
+  it('can still draft random cards', async () => {
     const onStart = renderStart();
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /card pool/i }), 'random');
     await start();
     expect(onStart).toHaveBeenCalledWith({ source: 'random', format: 'CLASSIC', ...SOLO });
   });
@@ -47,13 +61,13 @@ describe('StartScreen', () => {
     expect(screen.getByRole('option', { name: /tiny cube \(100 cards\)/i })).toBeEnabled();
   });
 
-  it('falls back to random cards when the chosen cube is too small for a new format', async () => {
+  it('falls back to the first cube that fits when the chosen one is too small for a new format', async () => {
     const onStart = renderStart();
     await userEvent.selectOptions(screen.getByRole('combobox', { name: /format/i }), 'WINSTON');
     await userEvent.selectOptions(screen.getByRole('combobox', { name: /card pool/i }), 'c2');
     await userEvent.selectOptions(screen.getByRole('combobox', { name: /format/i }), 'CLASSIC');
     await start();
-    expect(onStart).toHaveBeenCalledWith({ source: 'random', format: 'CLASSIC', ...SOLO });
+    expect(onStart).toHaveBeenCalledWith({ source: 'cube', collectionId: 'c1', format: 'CLASSIC', ...SOLO });
   });
 
   it('works with no cubes at all', async () => {
@@ -67,7 +81,7 @@ describe('StartScreen', () => {
     await userEvent.type(screen.getByRole('textbox', { name: /your name/i }), 'Amir');
     await userEvent.click(screen.getByRole('checkbox', { name: /pick timer/i }));
     await userEvent.click(screen.getByRole('button', { name: /open a table/i }));
-    expect(onStart).toHaveBeenCalledWith({ source: 'random', format: 'CLASSIC', playerName: 'Amir', timed: false, startNow: false });
+    expect(onStart).toHaveBeenCalledWith({ source: 'cube', collectionId: 'c1', format: 'CLASSIC', playerName: 'Amir', timed: false, startNow: false });
   });
 
   it('disables the controls while starting', () => {

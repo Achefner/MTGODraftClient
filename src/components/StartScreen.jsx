@@ -1,25 +1,25 @@
 import { useState } from 'react';
 import { findFormat } from '../domain/formats';
+import { orderSources } from '../domain/sources';
 
 const RANDOM = 'random';
 
 /**
- * Choose a format, a card pool, a name and the pick timer, then draft against bots at once or
+ * Choose a format, a card pool (the featured cube first), a name and the pick timer, then draft against bots at once or
  * open a table for friends to join.
  */
 export default function StartScreen({ formats, sources, onStart, disabled = false }) {
   const [formatName, setFormatName] = useState(formats[0]?.name ?? 'CLASSIC');
-  const [choice, setChoice] = useState(RANDOM);
+  const [picked, setPicked] = useState(null);
   const [playerName, setPlayerName] = useState('');
   const [timed, setTimed] = useState(true);
   const format = findFormat(formats, formatName);
   const tooSmall = (cube) => cube.cardCount < format.cardsNeeded;
-
-  const handleFormat = (name) => {
-    setFormatName(name);
-    const cube = sources.find((c) => c.id === choice);
-    if (cube && cube.cardCount < findFormat(formats, name).cardsNeeded) setChoice(RANDOM);
-  };
+  const cubes = orderSources(sources);
+  // The player's pick while it fits the format; otherwise the first cube that does (the featured
+  // one when it is there), else random cards.
+  const pickedFits = picked === RANDOM || cubes.some((cube) => cube.id === picked && !tooSmall(cube));
+  const choice = pickedFits ? picked : cubes.find((cube) => !tooSmall(cube))?.id ?? RANDOM;
 
   const start = (startNow) => {
     const pool = choice === RANDOM ? { source: 'random' } : { source: 'cube', collectionId: choice };
@@ -34,18 +34,18 @@ export default function StartScreen({ formats, sources, onStart, disabled = fals
   return (
     <form className="start-screen" onSubmit={handleSubmit}>
       <label htmlFor="format-select">Format</label>
-      <select id="format-select" value={format.name} onChange={(event) => handleFormat(event.target.value)} disabled={disabled}>
+      <select id="format-select" value={format.name} onChange={(event) => setFormatName(event.target.value)} disabled={disabled}>
         {formats.map((f) => <option key={f.name} value={f.name}>{f.displayName}</option>)}
       </select>
 
       <label htmlFor="source-select">Card pool</label>
-      <select id="source-select" value={choice} onChange={(event) => setChoice(event.target.value)} disabled={disabled}>
-        <option value={RANDOM}>Random cards from the database</option>
-        {sources.map((cube) => (
+      <select id="source-select" value={choice} onChange={(event) => setPicked(event.target.value)} disabled={disabled}>
+        {cubes.map((cube) => (
           <option key={cube.id} value={cube.id} disabled={tooSmall(cube)}>
             {cube.name} ({cube.cardCount} cards{tooSmall(cube) ? `, needs ${format.cardsNeeded}` : ''})
           </option>
         ))}
+        <option value={RANDOM}>Random cards from the database</option>
       </select>
 
       <label htmlFor="player-name">Your name</label>

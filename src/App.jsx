@@ -4,6 +4,7 @@ import {
   act, fetchFormats, fetchSources, getDraft, joinTable, openTable, previewTable, saveDeck, startTable, streamUrl,
 } from './api/draftApi';
 import { openStream } from './api/draftStream';
+import { CardZoomProvider } from './components/CardZoom';
 import ConnectionStatus from './components/ConnectionStatus';
 import DraftLog from './components/DraftLog';
 import DraftStatus from './components/DraftStatus';
@@ -170,43 +171,45 @@ export default function App() {
   const playing = view?.status === 'RUNNING';
 
   return (
-    <main className="app">
-      <header className="app__header">
-        <h1>MTGO Draft</h1>
-        {playing && <DraftStatus draft={view} />}
-        {playing && view.timer && <PickClock timer={view.timer} receivedAt={view.receivedAt} />}
-      </header>
+    <CardZoomProvider>
+      <main className="app">
+        <header className="app__header">
+          <h1>MTGO Draft</h1>
+          {playing && <DraftStatus draft={view} />}
+          {playing && view.timer && <PickClock timer={view.timer} receivedAt={view.receivedAt} />}
+        </header>
 
-      {session && <ConnectionStatus status={connection} />}
-      {error && <p role="alert" className="app__alert">{error}</p>}
+        {session && <ConnectionStatus status={connection} />}
+        {error && <p role="alert" className="app__alert">{error}</p>}
 
-      {!session && joinId && <JoinScreen preview={preview} onJoin={handleJoin} onCancel={handleCancelJoin} disabled={busy} />}
-      {!session && !joinId && <StartScreen formats={formats} sources={sources} onStart={handleStart} disabled={busy} />}
-      {session && !view && <p>Loading your draft…</p>}
+        {!session && joinId && <JoinScreen preview={preview} onJoin={handleJoin} onCancel={handleCancelJoin} disabled={busy} />}
+        {!session && !joinId && <StartScreen formats={formats} sources={sources} onStart={handleStart} disabled={busy} />}
+        {session && !view && <p>Loading your draft…</p>}
 
-      {view?.status === 'LOBBY' && (
-        <Lobby view={view} link={joinLink(window.location.origin, view.id)} onStart={handleHostStart} onLeave={handleLeave} disabled={busy} />
-      )}
+        {view?.status === 'LOBBY' && (
+          <Lobby view={view} link={joinLink(window.location.origin, view.id)} onStart={handleHostStart} onLeave={handleLeave} disabled={busy} />
+        )}
 
-      {view?.status === 'FINISHED' && <DraftSummary picks={view.picks} onSave={handleSave} onRestart={handleLeave} />}
+        {view?.status === 'FINISHED' && <DraftSummary picks={view.picks} onSave={handleSave} onRestart={handleLeave} />}
 
-      {playing && (
-        <div className="draft">
-          <div className="draft__main">
-            {view.format === 'WINSTON' ? (
-              <WinstonTable draft={view} onTake={() => play({ type: 'TAKE_PILE' })} onPass={() => play({ type: 'PASS_PILE' })} disabled={busy} />
-            ) : (
-              <Pack cards={view.pack} onPick={(cardName) => play({ type: 'PICK', cardName })} disabled={busy || !view.yourTurn}
-                label={view.format === 'ROCHESTER' ? 'Table' : 'Your pack'} />
-            )}
-            {view.format !== 'CLASSIC' && <DraftLog draft={view} />}
+        {playing && (
+          <div className="draft">
+            <div className="draft__main">
+              {view.format === 'WINSTON' ? (
+                <WinstonTable draft={view} onTake={() => play({ type: 'TAKE_PILE' })} onPass={() => play({ type: 'PASS_PILE' })} disabled={busy} />
+              ) : (
+                <Pack cards={view.pack} onPick={(cardName) => play({ type: 'PICK', cardName })} disabled={busy || !view.yourTurn}
+                  label={view.format === 'ROCHESTER' ? 'Table' : 'Your pack'} />
+              )}
+              {view.format !== 'CLASSIC' && <DraftLog draft={view} />}
+            </div>
+            <aside className="draft__side">
+              <SeatList draft={view} />
+              <Picks picks={view.picks} total={totalPicks(view.format)} />
+            </aside>
           </div>
-          <aside className="draft__side">
-            <SeatList draft={view} />
-            <Picks picks={view.picks} total={totalPicks(view.format)} />
-          </aside>
-        </div>
-      )}
-    </main>
+        )}
+      </main>
+    </CardZoomProvider>
   );
 }
