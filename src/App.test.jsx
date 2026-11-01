@@ -281,9 +281,9 @@ describe('App', () => {
     act.mockResolvedValueOnce(winston({ version: 6, moves: 2, picks: [card(2)], winston: { pileSizes: [2, 1, 1], currentPile: 0, stackSize: 84 } }));
     await soloStart('WINSTON');
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Pass pile 1' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Skip pile 1' }));
     expect(act).toHaveBeenCalledWith('d1', 'tok', { type: 'PASS_PILE', expectedMoves: 0 });
-    await userEvent.click(await screen.findByRole('button', { name: 'Take pile 2' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Take pile 2 (1 card)' }));
     expect(act).toHaveBeenCalledWith('d1', 'tok', { type: 'TAKE_PILE', expectedMoves: 1 });
     expect(await screen.findByText('84 cards in the stack')).toBeInTheDocument();
   });

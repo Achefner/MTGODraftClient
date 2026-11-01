@@ -187,45 +187,91 @@ button:disabled {
   gap: 1rem;
 }
 
-.winston__piles {
+.winston__table {
+  --winston-card-width: 140px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.winston-pile {
+  flex: 0 0 var(--winston-card-width);
+  padding: 0.4rem;
+  border: 2px solid transparent;
+  border-radius: 10px;
+}
+
+.winston-pile h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.winston-pile--current {
+  border-color: var(--accent);
+}
+
+.winston-pile--current h3 {
+  color: inherit;
+}
+
+.winston-pile--stack {
+  margin-left: auto;
+}
+
+.winston-pile__cards {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 120px));
-  gap: 1rem;
 }
 
-.winston__pile {
-  display: grid;
-  justify-items: center;
-  gap: 0.25rem;
-  padding: 0.5rem;
-  border: 2px solid transparent;
-  border-radius: 10px;
-  color: var(--muted);
+/* each card hides all of the previous one but its title strip */
+.winston-pile__cards li + li {
+  margin-top: calc(var(--winston-card-width) * -1.15);
 }
 
-.winston__pile[aria-current='true'] {
-  border-color: var(--accent);
-  color: inherit;
-  font-weight: 600;
+.winston-pile--stack .winston-pile__cards li + li {
+  margin-top: calc(var(--winston-card-width) * -1.38); /* a deck: barely offset */
 }
 
-.winston__back {
+.winston-pile__back {
+  display: block;
   width: 100%;
-  border-radius: 6px;
+  aspect-ratio: 5 / 7;
+  border-radius: 8px;
+}
+
+.winston-pile__empty {
+  margin: 0;
+  padding: 2rem 0;
+  text-align: center;
+  color: var(--muted);
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+}
+
+.winston-pile__take {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.winston-pile__take:hover:not(:disabled),
+.winston-pile__take:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .winston__actions {
   display: flex;
-  flex-wrap: wrap;
   gap: 0.75rem;
-}
-
-.winston__actions button + button {
-  background: transparent;
-  color: var(--accent);
 }
 
 /* --- log --- */

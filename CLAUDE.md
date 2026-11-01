@@ -15,7 +15,8 @@ npm test        # tests live next to the code as *.test.js(x); App.test.jsx mock
   (used until `GET /drafts/formats` answers), and `canPassPile` in `src/domain/winston.js`
   (only disables the Pass button; the service still decides).
 - Formats: CLASSIC (pack in front of you), ROCHESTER (`pack` is the face-up table, `Pack` with
-  label "Table"), WINSTON (`WinstonTable`: piles, the pile you look at, take or pass). Every
+  label "Table"), WINSTON (`WinstonTable`: every pile shows all its cards, face up only for the current pile on
+  your turn, which is one button that takes it; Skip passes it). Every
   action goes through `act(draftId, {type, cardName})` → `POST /drafts/{id}/actions`.
 - `DraftLog` renders the view's `log` (events already filtered for your seat by the service)
   through `describeEvent`; it is shown for Rochester and Winston, where other seats' moves matter.

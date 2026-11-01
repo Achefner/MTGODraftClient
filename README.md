@@ -19,8 +19,10 @@ on port 8082, which draws the cards from MTGODatabase.
   pass direction.
 - **Rochester**: the face-up booster is the table. The status line shows the round, which
   booster and who opened it, and whose turn it is; a log lists what the other seats took.
-- **Winston**: three face-down piles with their size. On your turn you see the pile you are
-  looking at and take it or pass it; the log tells what the opponent did, without its cards.
+- **Winston**: the three piles show all their cards, and the stack sits beside them. On your
+  turn the pile you are looking at is face up: click it to take it, or press Skip to pass it
+  (on the last pile, skipping takes the top card of the stack). Everything else is face down.
+  The log tells what the opponent did, without its cards.
 - **Zoom**: hovering any card picture shows it big next to the cursor: on its right, or on its
   left when it does not fit; centred on the cursor's height but never past the window's edges.
 - **Your picks** sit at the bottom in mana value columns (0 to 6, 7+, and ? for unknown), each
@@ -66,7 +68,7 @@ src/
 ├── components/PickClock       # countdown of the seat's pick timer
 ├── components/ConnectionStatus# banner while reconnecting
 ├── components/Pack            # clickable card grid (your pack, or the Rochester table)
-├── components/WinstonTable    # piles, the pile you look at, take or pass
+├── components/WinstonTable    # piles and stack; click the face-up pile to take it, or Skip
 ├── components/DraftLog        # what happened, most recent first
 ├── components/SeatList        # who sits where, online or not, when other people play
 ├── components/PickColumns     # picks in draggable columns
