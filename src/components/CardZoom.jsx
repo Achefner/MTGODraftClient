@@ -9,14 +9,14 @@ import { CardZoomContext } from './cardZoomContext';
 export function CardZoomProvider({ children }) {
   const [hovered, setHovered] = useState(null);
   const actions = useMemo(() => ({
-    show: (card, cursor) => setHovered({ card, cursor, viewport: { width: window.innerWidth, height: window.innerHeight } }),
-    hide: () => setHovered(null),
+    show: (owner, card, cursor) => setHovered({ owner, card, cursor, viewport: { width: window.innerWidth, height: window.innerHeight } }),
+    release: (owner) => setHovered((current) => (current?.owner === owner ? null : current)),
   }), []);
 
   return (
     <CardZoomContext.Provider value={actions}>
       {children}
-      {hovered && <ZoomedCard {...hovered} />}
+      {hovered && <ZoomedCard card={hovered.card} cursor={hovered.cursor} viewport={hovered.viewport} />}
     </CardZoomContext.Provider>
   );
 }

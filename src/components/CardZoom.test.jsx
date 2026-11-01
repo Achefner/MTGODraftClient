@@ -73,4 +73,34 @@ describe('card zoom', () => {
     fireEvent.mouseMove(screen.getByRole('img', { name: 'Lightning Bolt' }), { clientX: 100, clientY: 400 });
     expect(zoom()).not.toBeInTheDocument();
   });
+
+  it('disappears when the hovered card goes away without the cursor leaving it (a pick)', () => {
+    const { rerender } = render(<CardZoomProvider><CardImage card={bolt} /></CardZoomProvider>);
+    fireEvent.mouseMove(screen.getByRole('img', { name: 'Lightning Bolt' }), { clientX: 100, clientY: 400 });
+
+    rerender(<CardZoomProvider><p>next pack</p></CardZoomProvider>);
+
+    expect(zoom()).not.toBeInTheDocument();
+  });
+
+  it('stays when another card goes away', () => {
+    const oko = { name: 'Oko', imageUrl: 'https://img/oko.jpg' };
+    const cards = (list) => <CardZoomProvider>{list.map((c) => <CardImage key={c.name} card={c} />)}</CardZoomProvider>;
+    const { rerender } = render(cards([bolt, oko]));
+    fireEvent.mouseMove(screen.getByRole('img', { name: 'Oko' }), { clientX: 100, clientY: 400 });
+
+    rerender(cards([oko]));
+
+    expect(zoom().querySelector('img')).toHaveAttribute('src', 'https://img/oko.jpg');
+  });
+
+  it('disappears when the card starts being dragged', () => {
+    renderCard();
+    const card = screen.getByRole('img', { name: 'Lightning Bolt' });
+    fireEvent.mouseMove(card, { clientX: 100, clientY: 400 });
+
+    fireEvent.dragStart(card);
+
+    expect(zoom()).not.toBeInTheDocument();
+  });
 });

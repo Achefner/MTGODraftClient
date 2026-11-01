@@ -201,6 +201,20 @@ describe('App', () => {
     expect(screen.getByTestId('card-zoom').querySelector('img')).toHaveAttribute('src', 'https://img/2.jpg');
   });
 
+  it('drops the zoom of the card just picked', async () => {
+    openTable.mockResolvedValue(ticket());
+    act.mockResolvedValue(view({ version: 12, moves: 1, pickNumber: 2, pack: pack(14, 100), picks: [card(2)] }));
+    await soloStart();
+    const button = await screen.findByRole('button', { name: 'Pick Card 2' });
+    fireEvent.mouseMove(within(button).getByRole('img'), { clientX: 50, clientY: 300 });
+    expect(screen.getByTestId('card-zoom')).toBeInTheDocument();
+
+    await userEvent.click(button);
+
+    expect(await screen.findByText('Pick 2 of 15')).toBeInTheDocument();
+    expect(screen.queryByTestId('card-zoom')).not.toBeInTheDocument();
+  });
+
   it('still offers every format and random cards when the lists cannot be loaded', async () => {
     fetchSources.mockRejectedValue(new Error('boom'));
     fetchFormats.mockRejectedValue(new Error('boom'));
