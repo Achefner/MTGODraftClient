@@ -13,7 +13,7 @@ import JoinScreen from './components/JoinScreen';
 import Lobby from './components/Lobby';
 import Pack from './components/Pack';
 import PickClock from './components/PickClock';
-import Picks from './components/Picks';
+import PickColumns from './components/PickColumns';
 import SeatList from './components/SeatList';
 import StartScreen from './components/StartScreen';
 import WinstonTable from './components/WinstonTable';
@@ -205,8 +205,10 @@ export default function App() {
             </div>
             <aside className="draft__side">
               <SeatList draft={view} />
-              <Picks picks={view.picks} total={totalPicks(view.format)} />
             </aside>
+            <div className="draft__picks">
+              <PickColumns picks={view.picks} total={totalPicks(view.format)} />
+            </div>
           </div>
         )}
       </main>

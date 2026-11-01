@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import CardImage from './CardImage';
+import PickColumns from './PickColumns';
 
 /** End of the draft: the picks, a form to save them as a deck, and a restart button. */
 export default function DraftSummary({ picks, onSave, onRestart }) {
@@ -35,11 +35,7 @@ export default function DraftSummary({ picks, onSave, onRestart }) {
       </form>
       {saved && <p className="summary__saved">Saved as "{saved.name}" ({saved.cardCount} cards) in the card database.</p>}
       {error && <p role="alert" className="app__alert">{error}</p>}
-      <ul className="summary__picks" aria-label="Picked cards">
-        {picks.map((card, index) => (
-          <li key={`${card.name}-${index}`}><CardImage card={card} /></li>
-        ))}
-      </ul>
+      <PickColumns picks={picks} title="Your deck" />
     </section>
   );
 }

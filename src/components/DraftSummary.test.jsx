@@ -1,14 +1,15 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DraftSummary from './DraftSummary';
 
-const picks = [{ name: 'Black Lotus', imageUrl: null }, { name: 'Sol Ring', imageUrl: null }];
+const picks = [{ name: 'Black Lotus', imageUrl: null, manaValue: 0 }, { name: 'Sol Ring', imageUrl: null, manaValue: 1 }];
 
 describe('DraftSummary', () => {
-  it('announces the end and lists the picks', () => {
+  it('announces the end and shows the picks by mana value', () => {
     render(<DraftSummary picks={picks} onSave={jest.fn()} onRestart={jest.fn()} />);
     expect(screen.getByRole('heading', { name: /draft complete/i })).toBeInTheDocument();
-    expect(screen.getAllByRole('img')).toHaveLength(2);
+    expect(screen.getByRole('heading', { name: 'Your deck (2)' })).toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: 'Mana value 1' })).getByRole('img', { name: 'Sol Ring' })).toBeInTheDocument();
   });
 
   it('saves the deck under the typed name', async () => {

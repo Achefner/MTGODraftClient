@@ -34,6 +34,9 @@ npm test        # tests live next to the code as *.test.js(x); App.test.jsx mock
   for fast refresh). Placement rules are pure functions in `domain/zoomPosition.js`.
 - Card pool order: `orderSources` puts `FEATURED_CUBE` ('Power LSV Cube') first; `StartScreen`
   selects the player's pick while it fits the format, else the first cube that fits, else random.
+- Picks: `PickColumns` renders `pickColumns(picks)` (domain): plain `{key, label, cards}` columns
+  by `manaValue`. Dragging cards between columns later means making those columns state the
+  player edits (seeded by `pickColumns`), keyed by card and pick index.
 - `ApiError` carries the service's `{"error": …}` message so the UI can show it verbatim.
 - Card pictures come straight from the draft view (`imageUrl`, Scryfall large images);
   `CardImage` falls back to `public/card-back.svg` with the name overlaid.

@@ -15,7 +15,7 @@ jest.mock('./api/draftApi', () => {
 });
 jest.mock('./api/draftStream', () => ({ openStream: jest.fn() }));
 
-const card = (i) => ({ name: `Card ${i}`, imageUrl: `https://img/${i}.jpg` });
+const card = (i) => ({ name: `Card ${i}`, imageUrl: `https://img/${i}.jpg`, manaValue: i % 8 });
 const pack = (n, from = 0) => Array.from({ length: n }, (_, i) => card(from + i));
 const seat = (n, overrides = {}) => ({ seat: n, you: n === 0, name: n === 0 ? 'Amir' : null, kind: n === 0 ? 'HUMAN' : 'BOT', connected: n === 0, pickCount: 0, ...overrides });
 const view = (overrides) => ({
@@ -81,7 +81,8 @@ describe('App', () => {
 
     expect(act).toHaveBeenCalledWith('d1', 'tok', { type: 'PICK', cardName: 'Card 3', expectedMoves: 0 });
     expect(await screen.findByText('Pick 2 of 15')).toBeInTheDocument();
-    expect(within(screen.getByRole('list', { name: /your picks/i })).getByRole('img', { name: 'Card 3' })).toBeInTheDocument();
+    const picks = screen.getByRole('region', { name: /your picks \(1\/45\)/i });
+    expect(within(picks).getByRole('img', { name: 'Card 3' })).toBeInTheDocument();
   });
 
   it('reloads the draft when an action was out of date', async () => {

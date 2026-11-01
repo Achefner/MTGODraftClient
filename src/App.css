@@ -84,7 +84,7 @@ button:disabled {
 /* --- draft layout --- */
 .draft {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 1.5rem;
   align-items: start;
 }
@@ -95,9 +95,7 @@ button:disabled {
   }
 }
 
-.pack,
-.picks__list,
-.summary__picks {
+.pack {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -125,7 +123,7 @@ button:disabled {
 }
 
 .pack__empty,
-.picks__empty {
+.pick-columns__empty {
   color: var(--muted);
 }
 
@@ -157,30 +155,6 @@ button:disabled {
   text-align: center;
 }
 
-/* --- picks --- */
-.picks {
-  padding: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-}
-
-.picks h2 {
-  margin: 0 0 0.75rem;
-  font-size: 1.1rem;
-}
-
-.picks__list {
-  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
-.picks__list .card-image__name {
-  font-size: 0.6rem;
-  padding: 0.1rem 0.2rem;
-}
-
 /* --- summary --- */
 .summary__save {
   display: flex;
@@ -195,9 +169,6 @@ button:disabled {
   font-weight: 600;
 }
 
-.summary__picks {
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-}
 
 /* --- main column: pack or table, then the log --- */
 .draft__main {
@@ -438,4 +409,69 @@ button:disabled {
   object-fit: contain;
   border-radius: 4.75% / 3.5%;
   box-shadow: 0 12px 32px rgb(0 0 0 / 45%);
+}
+
+/* --- picks by mana value, at the bottom --- */
+.draft__side:empty {
+  display: none;
+}
+
+.draft__side .seat-list {
+  width: 240px;
+}
+
+.draft__picks {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.pick-columns {
+  --pick-card-width: 120px;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.pick-columns h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.pick-columns__row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.pick-column {
+  flex: 0 0 var(--pick-card-width);
+}
+
+.pick-column h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.pick-column__count {
+  color: var(--muted);
+  font-weight: normal;
+}
+
+.pick-column ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* each card hides all of the previous one but its title strip */
+.pick-column li + li {
+  margin-top: calc(var(--pick-card-width) * -1.19);
+}
+
+.pick-column .card-image__name {
+  font-size: 0.7rem;
 }
